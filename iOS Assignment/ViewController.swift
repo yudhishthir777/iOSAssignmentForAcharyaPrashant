@@ -59,15 +59,19 @@ extension ViewController : UICollectionViewDelegate, UICollectionViewDataSource,
         
         let imageUrl = self.imageArrays[indexPath.row].thumbnail.domain + "/" + self.imageArrays[indexPath.row].thumbnail.basePath + "/0/" + self.imageArrays[indexPath.row].thumbnail.key.rawValue
         
-        if let image = ImageCache.shared.getImage(of: self.imageArrays[indexPath.row].id){
+        if  let image = kImageInCache.object(forKey: self.imageArrays[indexPath.row].id as NSString){
+            cell.imgIcon.image = image
+            cell.imgAct.isHidden = true
+            cell.imgAct.stopAnimating()
+        }else if let image = ImageCache.shared.getImage(of: self.imageArrays[indexPath.row].id){
             cell.imgIcon.image = image
             cell.imgAct.isHidden = true
             cell.imgAct.stopAnimating()
         }else{
-            
             self.downloadImage(from: URL(string: imageUrl)!) { result in
                 DispatchQueue.main.async {
                     if let image = result{
+                        kImageInCache.setObject(image, forKey: self.imageArrays[indexPath.row].id as NSString)
                         ImageCache.shared.set(image: image, key: self.imageArrays[indexPath.row].id)
                         cell.imgIcon.image = image
                         cell.imgAct.isHidden = true
@@ -89,6 +93,7 @@ extension ViewController : UICollectionViewDelegate, UICollectionViewDataSource,
         return CGSize(width: (collectionViewSize - 4.0)/3.0, height: (collectionViewSize - 4.0)/3.0)
     }
 }
+
 
 // Api Calling for URL
 extension ViewController{
